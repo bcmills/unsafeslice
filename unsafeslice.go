@@ -86,7 +86,7 @@ func ConvertAt(dst, src interface{}) {
 	hdr.Len = 0
 	hdr.Cap = 0
 
-	// Now set the slice to point to p, then expand the cap and length,
+	// Now set the slice to point to src, then expand the cap and length,
 	// again ensuring that the slice is always valid.
 	hdr.Data = uintptr(unsafe.Pointer(sv.Pointer()))
 	hdr.Cap = int(dstCap)
