@@ -55,12 +55,13 @@ func ExampleConvertAt() {
 	unsafeslice.ConvertAt(&alias, buf)
 	copy(alias, input)
 
-	// Perform an endian-insensitive transformation.
+	// Perform an endian-insensitive transformation word-by-word instead of
+	// byte-by-byte.
 	for i := range buf {
 		buf[i] |= 0x20202020
 	}
 
-	// Now we can read the result back out of the byte-slice view!
+	// Read the result back out of the byte-slice view to interpret it as text.
 	fmt.Printf("%s\n", alias[:len(input)])
 
 	// Output:
