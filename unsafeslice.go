@@ -16,6 +16,9 @@ import (
 // type, to a slice of length and capacity n located at p.
 //
 // The caller must ensure that src meets the alignment requirements for dst.
+//
+// This implements one possible API for https://golang.org/issue/19367
+// and https://golang.org/issue/13656.
 func SetAt(dst interface{}, p unsafe.Pointer, n int) {
 	dv := reflect.ValueOf(dst)
 	dt := dv.Type()
@@ -44,6 +47,8 @@ func SetAt(dst interface{}, p unsafe.Pointer, n int) {
 // The caller must ensure that src meets the alignment requirements for dst, and
 // that the length and capacity of src are integer multiples of the element size
 // of dst.
+//
+// This implements one possible API for https://golang.org/issue/38203.
 func ConvertAt(dst, src interface{}) {
 	sv := reflect.ValueOf(src)
 	st := sv.Type()
