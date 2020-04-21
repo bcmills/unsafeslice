@@ -15,7 +15,9 @@ import (
 // SetAt sets dst, which must be a non-nil pointer to a variable of a slice
 // type, to a slice of length and capacity n located at p.
 //
-// The caller must ensure that src meets the alignment requirements for dst.
+// The caller must ensure that p meets the alignment requirements for dst, and
+// that the allocation to which p points contains at least n contiguous
+// elements.
 //
 // This implements one possible API for https://golang.org/issue/19367
 // and https://golang.org/issue/13656.
