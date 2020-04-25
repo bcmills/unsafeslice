@@ -131,10 +131,7 @@ func OfString(s string) []byte {
 // Programs that use unsafeslice.AsString should be tested under the race
 // detector to flag erroneous mutations.
 func AsString(b []byte) string {
-	if len(b) == 0 {
-		return ""
-	}
-	p := unsafe.Pointer(&b[0])
+	p := unsafe.Pointer((*reflect.SliceHeader)(unsafe.Pointer(&b)).Data)
 
 	var s string
 	hdr := (*reflect.StringHeader)(unsafe.Pointer(&s))
@@ -185,8 +182,8 @@ func maybeDetectMutations(b []byte) {
 	// lifetimes of allocated strings to the next GC cycle rather than by an
 	// arbitrary time interval.
 	//
-	// However, because the lifetime of p is not tied to the lifetime of the
-	// backing data in any way, this approach could backfire and run the check
+	// However, because the lifetime of checksum is not tied to the lifetime of
+	// the backing data in any way, this approach could backfire and run the check
 	// much too early — before a dangerous mutation has even occurred. It's better
 	// than nothing, but not an adequate substitute for the race-enabled version
 	// of this check.
