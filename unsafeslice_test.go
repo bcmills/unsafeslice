@@ -153,6 +153,10 @@ func ExampleToString() {
 }
 
 func TestStringMutations(t *testing.T) {
+	if runtime.GOOS == "js" {
+		t.Skipf("js does not support os/exec")
+	}
+
 	if os.Getenv("UNSAFESLICE_TEST_STRING_MUTATIONS") != "" {
 		// Block "eventually" finalizers from running until we have actually mutated
 		// the slices. This guarantees that the finalizer will detect the mutation,
