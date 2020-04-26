@@ -9,10 +9,7 @@ package unsafeslice
 import (
 	"fmt"
 	"reflect"
-	"sync/atomic"
 	"unsafe"
-
-	"github.com/bcmills/unsafeslice/internal/eventually"
 )
 
 // SetAt sets dst, which must be a non-nil pointer to a variable of a slice
@@ -109,6 +106,12 @@ func ConvertAt(dst, src interface{}) {
 //
 // Programs that use unsafeslice.OfString should be tested under the race
 // detector to flag erroneous mutations.
+//
+// Programs that have been adequately tested and shown to be safe may be
+// recompiled with the "unsafe" tag to significantly reduce the overhead of this
+// function, at the cost of reduced safety checks. Programs built under the race
+// detector always have safety checks enabled, even when the "unsafe" tag is
+// set.
 func OfString(s string) []byte {
 	p := unsafe.Pointer((*reflect.StringHeader)(unsafe.Pointer(&s)).Data)
 
@@ -130,6 +133,12 @@ func OfString(s string) []byte {
 //
 // Programs that use unsafeslice.AsString should be tested under the race
 // detector to flag erroneous mutations.
+//
+// Programs that have been adequately tested and shown to be safe may be
+// recompiled with the "unsafe" tag to significantly reduce the overhead of this
+// function, at the cost of reduced safety checks. Programs built under the race
+// detector always have safety checks enabled, even when the "unsafe" tag is
+// set.
 func AsString(b []byte) string {
 	p := unsafe.Pointer((*reflect.SliceHeader)(unsafe.Pointer(&b)).Data)
 
@@ -140,76 +149,4 @@ func AsString(b []byte) string {
 
 	maybeDetectMutations(b)
 	return s
-}
-
-// maybeDetectMutations makes a best effort to detect mutations and lifetime
-// errors on the slice b. It is most effective when run under the race detector.
-func maybeDetectMutations(b []byte) {
-	if safetyReduced() || len(b) == 0 {
-		return
-	}
-
-	checksum := new(uint64)
-
-	h := newHash()
-	h.Write(b)
-	*checksum = h.Sum64()
-
-	if raceEnabled {
-		// Start a goroutine that reads from the slice and does not have a
-		// happens-before relationship with any other event in the program.
-		//
-		// Even if the goroutine is scheduled and runs to completion immediately, if
-		// anything ever mutates the slice the race detector should report it as a
-		// read/write race. The erroneous writer should be easy to identify from the
-		// race report.
-		go func() {
-			h := newHash()
-			h.Write(b)
-			if *checksum != h.Sum64() {
-				panic(fmt.Sprintf("mutation detected in string at address 0x%012x", &b[0]))
-			}
-		}()
-	}
-
-	// We can't set a finalizer on the slice contents itself, since we don't know
-	// how it was allocated (or even whether it is owned by the Go runtime).
-	// Instead, we use a finalizer on the checksum allocation to make a best
-	// effort to re-check the hash at some arbitrary future point in time.
-	//
-	// This attempts to produce a longer delay than scheduling a goroutine
-	// immediately, in order to catch more mutations, but only extends the
-	// lifetimes of allocated strings to the next GC cycle rather than by an
-	// arbitrary time interval.
-	//
-	// However, because the lifetime of checksum is not tied to the lifetime of
-	// the backing data in any way, this approach could backfire and run the check
-	// much too early — before a dangerous mutation has even occurred. It's better
-	// than nothing, but not an adequate substitute for the race-enabled version
-	// of this check.
-	eventually.SetFinalizer(checksum, func(checksum *uint64) {
-		h := newHash()
-		h.Write(b)
-		if *checksum != h.Sum64() {
-			panic(fmt.Sprintf("mutation detected in string at address 0x%012x", &b[0]))
-		}
-	})
-}
-
-// ReduceSafety may make the unsafeslice package even less safe,
-// but more efficient.
-//
-// ReduceSafety has no effect when the race detector is enabled:
-// the available safety checks are always enabled under the race detector,
-// and will generally produce clearer diagnostics.
-func ReduceSafety() {
-	if !raceEnabled {
-		atomic.StoreInt32(&safetyReducedFlag, 1)
-	}
-}
-
-var safetyReducedFlag int32 = 0
-
-func safetyReduced() bool {
-	return atomic.LoadInt32(&safetyReducedFlag) != 0
 }
