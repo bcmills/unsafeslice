@@ -143,7 +143,7 @@ func ExampleOfString() {
 	// 38d1334144987bf4
 }
 
-func ExampleToString() {
+func ExampleAsString() {
 	const input = "Hello, world!"
 	h := fnv.New64a()
 	io.WriteString(h, input)
