@@ -9,6 +9,7 @@ import (
 	"hash"
 	"hash/fnv"
 	"io"
+	"runtime"
 	"testing"
 	"unsafe"
 
@@ -168,15 +169,19 @@ func TestStringAllocs(t *testing.T) {
 }
 
 func BenchmarkOfString(b *testing.B) {
-	s := "Hello, world!"
+	in := "Hello, world!"
+	var out []byte
 	for n := b.N; n > 0; n-- {
-		_ = unsafeslice.OfString(s)
+		out = unsafeslice.OfString(in)
 	}
+	runtime.KeepAlive(out)
 }
 
 func BenchmarkAsString(b *testing.B) {
-	s := []byte("Hello, world!")
+	in := []byte("Hello, world!")
+	var out string
 	for n := b.N; n > 0; n-- {
-		_ = unsafeslice.AsString(s)
+		out = unsafeslice.AsString(in)
 	}
+	runtime.KeepAlive(out)
 }
