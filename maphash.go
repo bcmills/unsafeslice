@@ -14,17 +14,12 @@ import (
 
 type hash64 = *maphash.Hash
 
-var seed struct {
-	once sync.Once
-	seed maphash.Seed
-}
-
 func newHash() hash64 {
 	return new(maphash.Hash)
 }
 
 // initHash is separate from newHash because the call to sync.once.Do
-// confounds the inliner, which then induces as extra allocation
+// confounds the inliner, which then induces an extra allocation
 // for the hasher.
 func initHash(h hash64) {
 	seed.once.Do(func() {
@@ -34,3 +29,8 @@ func initHash(h hash64) {
 }
 
 func disposeHash(hash64) {}
+
+var seed struct {
+	once sync.Once
+	seed maphash.Seed
+}

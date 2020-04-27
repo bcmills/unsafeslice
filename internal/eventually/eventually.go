@@ -10,17 +10,20 @@ import (
 	"runtime"
 )
 
-var unblocked = make(chan struct{})
-
-func init() {
-	close(unblocked)
-}
+var unblocked chan struct{}
 
 // Block delays finalizer registration until unblock is called.
 func Block() (unblock func()) {
-	c := make(chan struct{})
-	unblocked = c
-	return func() { close(c) }
+	if unblocked != nil {
+		panic("cannot Block while already blocked")
+	}
+
+	unblocked = make(chan struct{})
+	return func() {
+		c := unblocked
+		unblocked = nil
+		close(c)
+	}
 }
 
 // SetFinalizer sets a finalizer f for pointer p.
@@ -28,13 +31,12 @@ func Block() (unblock func()) {
 // If registration is currently blocked, SetFinalizer registers it in a
 // background goroutine that first waits for registration to be unblocked.
 func SetFinalizer(p, f interface{}) {
-	select {
-	case <-unblocked:
+	if unblocked == nil {
 		runtime.SetFinalizer(p, f)
-	default:
-		go func() {
-			<-unblocked
+	} else {
+		go func(c <-chan struct{}) {
+			<-c
 			runtime.SetFinalizer(p, f)
-		}()
+		}(unblocked)
 	}
 }

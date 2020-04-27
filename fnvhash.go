@@ -15,17 +15,6 @@ import (
 
 type hash64 = hash.Hash64
 
-// hashPool stores unused hashers.
-//
-// We need a sync.Pool because the escape analysis in 1.13 and earlier isn't
-// clever enough to avoid heap-allocating an FNV hasher, causing
-// TestStringAllocs to fail.
-var hashPool = sync.Pool{
-	New: func() interface{} {
-		return fnv.New64a()
-	},
-}
-
 func newHash() hash64 {
 	return hashPool.Get().(hash64)
 }
@@ -36,4 +25,15 @@ func initHash(h hash64) {
 
 func disposeHash(h hash64) {
 	hashPool.Put(h)
+}
+
+// hashPool stores unused hashers.
+//
+// We need a sync.Pool because the escape analysis in 1.13 and earlier isn't
+// clever enough to avoid heap-allocating an FNV hasher, causing
+// TestStringAllocs to fail.
+var hashPool = sync.Pool{
+	New: func() interface{} {
+		return fnv.New64a()
+	},
 }

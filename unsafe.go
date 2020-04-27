@@ -10,7 +10,5 @@ package unsafeslice
 // which disables mutation checks for string functions.
 
 // maybeDetectMutations makes no attempt whatsoever to detect mutations and
-// lifetime errors on the slice b.
-func maybeDetectMutations(b []byte) {
-	_ = b
-}
+// lifetime errors on the passed-in slice.
+func maybeDetectMutations([]byte) {}

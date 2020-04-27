@@ -22,14 +22,7 @@ func maybeDetectMutations(b []byte) {
 		return
 	}
 
-	s := new(sliceSummary)
-	s.b = b
-
-	h := newHash()
-	initHash(h)
-	h.Write(b)
-	s.checksum = h.Sum64()
-	disposeHash(h)
+	c := newMutationChecker(b)
 
 	if raceEnabled {
 		// Start a goroutine that reads from the slice and does not have a
@@ -39,12 +32,12 @@ func maybeDetectMutations(b []byte) {
 		// anything ever mutates the slice the race detector should report it as a
 		// read/write race. The erroneous writer should be easy to identify from the
 		// race report.
-		go s.recheck()
+		go c.recheck()
 	}
 
 	// We can't set a finalizer on the slice contents itself, since we don't know
 	// how it was allocated (or even whether it is owned by the Go runtime).
-	// Instead, we use a finalizer on the checksum allocation to make a best
+	// Instead, we use a finalizer on the mutation checker itself to make a best
 	// effort to re-check the hash at some arbitrary future point in time.
 	//
 	// This attempts to produce a longer delay than scheduling a goroutine
@@ -57,20 +50,33 @@ func maybeDetectMutations(b []byte) {
 	// much too early — before a dangerous mutation has even occurred. It's better
 	// than nothing, but not an adequate substitute for the race-enabled version
 	// of this check.
-	eventually.SetFinalizer(s, (*sliceSummary).recheck)
+	eventually.SetFinalizer(c, (*mutationChecker).recheck)
 }
 
-type sliceSummary struct {
+type mutationChecker struct {
 	b        []byte
 	checksum uint64
 }
 
-func (s *sliceSummary) recheck() {
+func newMutationChecker(b []byte) *mutationChecker {
+	c := &mutationChecker{b: b}
+	c.checksum = c.sum64()
+	return c
+}
+
+func (c *mutationChecker) recheck() {
+	if c.sum64() != c.checksum {
+		panic(fmt.Sprintf("mutation detected in string at address 0x%012x", &c.b[0]))
+	}
+}
+
+func (c *mutationChecker) sum64() uint64 {
 	h := newHash()
 	initHash(h)
-	h.Write(s.b)
-	if h.Sum64() != s.checksum {
-		panic(fmt.Sprintf("mutation detected in string at address 0x%012x", &s.b[0]))
-	}
+
+	h.Write(c.b)
+	sum := h.Sum64()
+
 	disposeHash(h)
+	return sum
 }

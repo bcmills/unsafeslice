@@ -119,8 +119,8 @@ func ExampleOfString() {
 	var h hash.Hash = fnv.New64a()
 	b := unsafeslice.OfString(s)
 
-	// This is safe because the contract for an io.Writer requires:
-	// > Write must not modify the slice data, even temporarily.
+	// This is safe because the contract for an io.Writer requires that
+	// “Write must not modify the slice data, even temporarily.”
 	h.Write(b)
 
 	fmt.Printf("%x\n", h.Sum(nil))
