@@ -104,8 +104,8 @@ func ConvertAt(dst, src interface{}) {
 //
 // The caller must ensure that the contents of the slice are never mutated.
 //
-// Programs that use unsafeslice.OfString should be tested under the race
-// detector to flag erroneous mutations.
+// Programs that use OfString should be tested under the race detector to flag
+// erroneous mutations.
 //
 // Programs that have been adequately tested and shown to be safe may be
 // recompiled with the "unsafe" tag to significantly reduce the overhead of this
@@ -131,8 +131,8 @@ func OfString(s string) []byte {
 // mutated, and that its memory either is managed by the Go garbage collector or
 // remains valid for the remainder of this process's lifetime.
 //
-// Programs that use unsafeslice.AsString should be tested under the race
-// detector to flag erroneous mutations.
+// Programs that use AsString should be tested under the race detector to flag
+// erroneous mutations.
 //
 // Programs that have been adequately tested and shown to be safe may be
 // recompiled with the "unsafe" tag to significantly reduce the overhead of this
