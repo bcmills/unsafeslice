@@ -80,6 +80,19 @@ func TestSetAtWithVeryLargeTypeDoesNotPanic(t *testing.T) {
 	unsafeslice.SetAt(&s, unsafe.Pointer(&x), 1)
 }
 
+func TestConvertAt(t *testing.T) {
+	u32 := []uint32{0x00102030, 0x40506070}[:1]
+	var b []byte
+	unsafeslice.ConvertAt(&b, u32)
+
+	if want := len(u32) * 4; len(b) != want {
+		t.Errorf("ConvertAt(_, %x): length = %v; want %v", u32, len(b), want)
+	}
+	if want := cap(u32) * 4; cap(b) != want {
+		t.Errorf("ConvertAt(_, %x): capacity = %v; want %v", u32, cap(b), want)
+	}
+}
+
 func TestConvertAtErrors(t *testing.T) {
 	cases := []struct {
 		desc     string

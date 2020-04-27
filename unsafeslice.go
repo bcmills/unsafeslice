@@ -65,8 +65,8 @@ func ConvertAt(dst, src interface{}) {
 	}
 
 	srcElemSize := st.Elem().Size()
-	capBytes := uintptr(sv.Len()) * srcElemSize
-	lenBytes := uintptr(sv.Cap()) * srcElemSize
+	capBytes := uintptr(sv.Cap()) * srcElemSize
+	lenBytes := uintptr(sv.Len()) * srcElemSize
 
 	dstElemSize := dt.Elem().Elem().Size()
 
