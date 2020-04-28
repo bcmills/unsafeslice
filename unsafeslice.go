@@ -2,8 +2,7 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-// Package unsafeslice provides generic functions for unsafe transformations on
-// slice values.
+// Package unsafeslice implements common unsafe transformations involving slices.
 package unsafeslice
 
 import (
