@@ -162,9 +162,13 @@ func ExampleAsString() {
 func TestStringAllocs(t *testing.T) {
 	t.Run("OfString", func(t *testing.T) {
 		s := "Hello, world!"
+
+		var b []byte
 		avg := testing.AllocsPerRun(1000, func() {
-			_ = unsafeslice.OfString(s)
+			b = unsafeslice.OfString(s)
 		})
+		runtime.KeepAlive(b)
+
 		if avg > 0.01+maxStringAllocs {
 			t.Errorf("unsafeslice.OfString made %v allocations; want %d", avg, maxStringAllocs)
 		}
@@ -172,9 +176,13 @@ func TestStringAllocs(t *testing.T) {
 
 	t.Run("AsString", func(t *testing.T) {
 		b := []byte("Hello, world!")
+
+		var s string
 		avg := testing.AllocsPerRun(1000, func() {
-			_ = unsafeslice.AsString(b)
+			s = unsafeslice.AsString(b)
 		})
+		runtime.KeepAlive(s)
+
 		if avg > 0.01+maxStringAllocs {
 			t.Errorf("unsafeslice.OfString made %v allocations; want %d", avg, maxStringAllocs)
 		}
