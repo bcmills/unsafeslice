@@ -20,6 +20,8 @@ import (
 //
 // This implements one possible API for https://golang.org/issue/19367
 // and https://golang.org/issue/13656.
+//
+// Deprecated: as of Go 1.17, use unsafe.Slice instead.
 func SetAt(dst interface{}, p unsafe.Pointer, n int) {
 	dv := reflect.ValueOf(dst)
 	dt := dv.Type()
