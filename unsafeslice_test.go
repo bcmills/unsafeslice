@@ -17,11 +17,11 @@ import (
 )
 
 // asCPointer returns b as a C-style pointer and length
-func asCPointer(b []byte) (*byte, int) {
+func asCPointer(b []byte) (*int8, int) {
 	if len(b) == 0 {
 		return nil, 0
 	}
-	return &b[0], len(b)
+	return (*int8)(unsafe.Pointer(&b[0])), len(b)
 }
 
 func ExampleSetAt() {
